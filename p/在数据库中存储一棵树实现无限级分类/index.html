@@ -1,0 +1,330 @@
+<!doctype html><html lang=zh-CN dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="使用场景：在一些系统中，对内容进行分类是必需的功能。比如电商就需要对商品做分类处理，以便于客户搜索；论坛也会分为很多板块；门户网站、也得对网站的内容做各种分类。\n"><title>在数据库中存储一棵树，实现无限级分类</title>
+<link rel=canonical href=https://yangbrady.github.io/p/%E5%9C%A8%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD%E5%AD%98%E5%82%A8%E4%B8%80%E6%A3%B5%E6%A0%91%E5%AE%9E%E7%8E%B0%E6%97%A0%E9%99%90%E7%BA%A7%E5%88%86%E7%B1%BB/><link rel=stylesheet href=/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css><meta property='og:title' content="在数据库中存储一棵树，实现无限级分类"><meta property='og:description' content="使用场景：在一些系统中，对内容进行分类是必需的功能。比如电商就需要对商品做分类处理，以便于客户搜索；论坛也会分为很多板块；门户网站、也得对网站的内容做各种分类。\n"><meta property='og:url' content='https://yangbrady.github.io/p/%E5%9C%A8%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD%E5%AD%98%E5%82%A8%E4%B8%80%E6%A3%B5%E6%A0%91%E5%AE%9E%E7%8E%B0%E6%97%A0%E9%99%90%E7%BA%A7%E5%88%86%E7%B1%BB/'><meta property='og:site_name' content="Yang Brady's Blog"><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='blog'><meta property='article:published_time' content='2024-12-01T13:50:42+00:00'><meta property='article:modified_time' content='2024-12-02T13:36:14+00:00'><meta name=twitter:title content="在数据库中存储一棵树，实现无限级分类"><meta name=twitter:description content="使用场景：在一些系统中，对内容进行分类是必需的功能。比如电商就需要对商品做分类处理，以便于客户搜索；论坛也会分为很多板块；门户网站、也得对网站的内容做各种分类。\n"><link rel="shortcut icon" href=/favicon.png></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
+<span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure class=site-avatar><a href=/><img src=/img/avatar_hu897059592634026878.png width=300 height=300 class=site-logo loading=lazy alt=Avatar>
+</a><span class=emoji>🍥</span></figure><div class=site-meta><h1 class=site-name><a href=/>Yang Brady's Blog</a></h1><h2 class=site-description>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</h2></div></header><ol class=menu-social><li><a href=https://github.com/YangBrady target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li><li><a href=https://twitter.com target=_blank title=Twitter rel=me><svg class="icon icon-tabler icon-tabler-brand-twitter" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M22 4.01c-1 .49-1.98.689-3 .99-1.121-1.265-2.783-1.335-4.38-.737S11.977 6.323 12 8v1c-3.245.083-6.135-1.395-8-4 0 0-4.182 7.433 4 11-1.872 1.247-3.739 2.088-6 2 3.308 1.803 6.913 2.423 10.034 1.517 3.58-1.04 6.522-3.723 7.651-7.742a13.84 13.84.0 00.497-3.753C20.18 7.773 21.692 5.25 22 4.009z"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
+<span>Home</span></a></li><li><a href=/archives/><svg class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><rect x="3" y="4" width="18" height="4" rx="2"/><path d="M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+<span>Archives</span></a></li><li><a href=/search/><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
+<span>Search</span></a></li><li><a href=/links/><svg class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M10 14a3.5 3.5.0 005 0l4-4a3.5 3.5.0 00-5-5l-.5.5"/><path d="M14 10a3.5 3.5.0 00-5 0l-4 4a3.5 3.5.0 005 5l.5-.5"/></svg>
+<span>Links</span></a></li><li class=menu-bottom-section><ol class=menu><li id=dark-mode-toggle><svg class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="8" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<span>暗色模式</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">目录</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#需求分析>需求分析</a></li><li><a href=#一些常见设计方案的不足>一些常见设计方案的不足</a><ol><li><a href=#直接记录父分类的引用>直接记录父分类的引用</a></li><li><a href=#路径列表>路径列表</a></li><li><a href=#前序遍历树>前序遍历树</a></li></ol></li><li><a href=#新方案的思考>新方案的思考</a></li><li><a href=#基于-closuretable-的存储>基于 ClosureTable 的存储</a><ol><li><a href=#子节点查询>子节点查询</a></li><li><a href=#路径查询>路径查询</a></li><li><a href=#查询节点所在的层级深度>查询节点所在的层级（深度）</a></li><li><a href=#查询某一层的所有节点>查询某一层的所有节点</a></li><li><a href=#插入>插入</a></li><li><a href=#移动>移动</a></li></ol></li><li><a href=#结语>结语</a></li></ol></nav></div></section></aside><main class="main full-width"><article class=main-article><header class=article-header><div class=article-details><div class=article-title-wrapper><h2 class=article-title><a href=/p/%E5%9C%A8%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD%E5%AD%98%E5%82%A8%E4%B8%80%E6%A3%B5%E6%A0%91%E5%AE%9E%E7%8E%B0%E6%97%A0%E9%99%90%E7%BA%A7%E5%88%86%E7%B1%BB/>在数据库中存储一棵树，实现无限级分类</a></h2></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
+<time class=article-time--published>Dec 01, 2024</time></div><div><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<time class=article-time--reading>阅读时长: 14 分钟</time></div></footer></div></header><section class=article-content><p>使用场景：在一些系统中，对内容进行分类是必需的功能。比如电商就需要对商品做分类处理，以便于客户搜索；论坛也会分为很多板块；门户网站、也得对网站的内容做各种分类。</p><p>分类往往具有从属关系，比如铅笔盒钢笔属于笔，笔又是文具的一种，当然钢笔还可以按品牌来细分，每个品牌下面还有各种系列&mldr;</p><p>这个例子中从属关系具有5层，从上到下依次是：文具-笔-钢笔-XX牌-A系列，但实际中分类的层数却是无法估计的，比如生物中的界门纲目科属种有7级。显然对分类的级数做限制是不合理的，一个良好的分类系统，其应当能实现无限级分类。
+<img src=https://s2.loli.net/2024/12/03/E5ZaPWNcnlGdkgp.png loading=lazy alt=本博客的分类标签></p><p>[TOC]</p><h2 id=需求分析>需求分析</h2><p>首先分析一下分类之间的关系是怎样的，很明显，一个分类下面有好多个下级分类，比如笔下面有铅笔和钢笔；那么反过来，一个下级分类能够属于几个上级分类呢？这其实并不确定，取决于如何对类型的划分。比如有办公用品和家具，那么办公桌可以同时属于这两者，不过这会带来一些问题，比如：我要显示从顶级分类到它之间的所有分类，那么这种情况下就很难决定办公用品和家具显示哪一个，并且如果是多对一，实现上将更加复杂，所以这里还是限定每个分类仅有一个上级分类。</p><p>这样一来，<strong>分类的关系可以表述为一父多子的继承关系，正好对应数据结构中的树，那么问题就转化成了如何在数据库中存储一棵树，并且对分类所需要的操作有较好的支持。</strong></p><p>对于本博客来说，分类至少需要以下操作：</p><ol><li>对单个分类的增删改查。</li><li>查询一个分类的直属下级和所有下级，在现实某一分类下所有文章时需要使用。</li><li>查询出由顶级分类到文章所在分类之间的所有分类，并且是有序的。</li><li>查询分类是哪一级的，比如顶级分类是1，顶级分类的直属下级是2，再往下依次递增。</li><li>移动一个分类，换句话说就是把一个子树（或者仅单个节点）移动到另外的节点下面，这个在分类结构不合理，需要修改时使用。</li></ol><p>在性能的衡量上，这些操作并不是平等的。查询操作使用的更加频繁，毕竟分类不会没事就改着玩，<strong>性能考虑要以查询操作优先，特别是2和3分别用于搜索文章和在文章简介中显示其分类，所以是重中之重。</strong></p><p>另外，每个分类除了继承关系外，还有名字，简介等属性，也需要存储在数据库中。每个分类都有一个id，由数据库自动生成（自增主键）。</p><p>无限级多分类多存在于企业应用中，比如电商、博客平台等，这些应用里一般都有缓存机制，对于分类这种不频繁修改的数据，即使在底层数据库中存在缓慢的操作，只要上层缓存能够命中，一样有很快的响应速度。但是对于抽象的需求：<strong>在关系数据库中存储一棵树，并不仅仅存在于有缓存的应用中，所以设计一个高效的存储方案，仍然有其意义。</strong></p><p>下面就以这个卖文具的电商的场景为例，针对这6条需求，设计一个数据库存储方案（对过程没兴趣可以直接转到第4节）。</p><h2 id=一些常见设计方案的不足>一些常见设计方案的不足</h2><h3 id=直接记录父分类的引用>直接记录父分类的引用</h3><p>在许多编程语言中，继承关系都是一个类仅继承于一个父类，添加这种继承关系仅需要声明一下父类即可，比如JAVA中<strong>extends</strong> xxx。根据这种思想，我们仅需要在每个分类上添加上直属上级的id，即可存储它们之间的继承关系。</p><p><img src=https://s2.loli.net/2024/12/03/pCvjFnwbzu1yglh.png loading=lazy alt=父id字段存储继承关系>
+表中<code>parent</code>即为直属上级分类的id，顶级分类设为0。这种方案简单易懂，仅存在一张表，并且没有冗余字段，存储空间占用极小，在数据库层面是一种很好的设计。
+那么再看看对操作的支持情况怎么样，第一条单个增改查都是一句话完事就不多说了，删除的话记得把下级分类的id全部改成被删除分类的上级分类即可，也就多一个UPDATE。</p><p>第二条可就麻烦了，比如我要查文具的下级分类，预期结果是笔、铅笔、钢笔三个，但是并没有办法通过文具一次性就查到铅笔盒钢笔，因为这两者的关系间接存储在笔这个分类里，需要先查出直属下级（笔），才能够往下查询，这意味着需要递归，性能上一下子就差了很多。</p><p>第三条同样需要递归，因为通过一个分类，数据库中只存储了其直属父类，需要通过递归到顶级分类才能获取到它们之间的所有分类信息。
+综上所述，最关键的两个需求都需要使用性能最差的递归方式,这种设计肯定是不行的。但还是继续看看剩下的几条吧。
+第4个需求：查询分类是哪一级的？这个还是得需要递归或循环，查出所有上级分类的数量即为分类的层级。
+移动分类倒是非常简单，直接更新父id即可，这也是这种方案的唯一优势了吧&mldr;如果你的分类修改比查询还多不妨就这么做吧。
+最后一个查询某一级的所有分类，对于这个设计简直是灾难，它需要先找出所有一级分类，然后循环一遍，找出所有一级分类的子类就是二级分类&mldr;如此循环直到所需的级数为之。所以这种设计里，这个功能基本是废了。
+这个方式也是一开始就能想到的，在数据量不大（层级不深）的情况下，因为其简单直观的特点，不失为一个好的选择，不过对于本项目来说还不够（本项目立志成为一流博客平台！！！）。</p><h3 id=路径列表>路径列表</h3><p>从2.1节中可以看出，__之所以速度慢，就是因为在分类中仅仅存储了直属上级的关系，而需求却要查询出非直属上级。__针对这一点，我们的表中不仅仅记录父节点id，而是将它到顶级分类之间所有分类的id都保存下来。这个字段所保存的信息就像文件树里的路径一样，所以就叫做path吧。</p><p><img src=https://s2.loli.net/2024/12/03/Fi4sS7eHZGxPOuD.png loading=lazy alt=路径列表设计>
+如图所示，每个分类保存了它所有上级分类的列表，用逗号隔开，从左往右依次是从顶级分类到父分类的id。
+查询下级时使用<code>Like</code>运算符来查找，比如查出所有笔的下级:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=n>name</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pathlist</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>path</span><span class=w> </span><span class=k>LIKE</span><span class=w> </span><span class=s1>&#39;1,%&#39;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>一句话搞定，<code>LIKE</code>的右边是笔的<code>path</code>字段的值加上模糊匹配，并且左联接能够使用索引，的效率也过得去。
+查询笔的直属下级也同样可以用<code>LIKE</code>搞定：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=n>name</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pathlist</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>path</span><span class=w> </span><span class=k>LIKE</span><span class=w> </span><span class=s1>&#39;%2&#39;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>而找出所有上级分类这个需求，直接查出<code>path</code>字段，然后在应用层里分割一下即可获得获得所有上级，并且顺序也能保证。
+查询某一级的分类也简单，因为层级越深，<code>path</code>就越长，使用<code>LENGTH()</code>函数作为条件即可筛选出合适的结果。反过来，根据其长度也能够计算出分类的级别。
+移动操作需要递归，因为每一个分类的<code>path</code>都是它父类的<code>path</code>加上父类的id,将分类及其所有子分类的<code>path</code>设为其父类的<code>path</code>并在最后追加父类的id即可。
+在许多系统中都使用了这种方案，其各方面都具有可以接受的性能，理解起来也比较容易。但是其有两点不足：1.就是不遵守数据库范式，将列表数据直接作为字符串来存储，这将导致一些操作需要在上层解析<code>path</code>字段的值；2.就是字段长度是有限的，不能真正达到无限级深度，并且大字段对索引不利。如果你不在乎什么范式，分类层级也远达不到字段长度的限制，那么这种方案是可行的。</p><h3 id=前序遍历树>前序遍历树</h3><p>这是一种在数据库里存储一棵树的解决方案。它的思想不是直接存储父节点的id，而是以前序遍历中的顺序来判断分类直接的关系。</p><p><img src=https://s2.loli.net/2024/12/03/7huWClrFqfBM6p8.jpg loading=lazy alt=前序遍历树></p><p>假设从根节点开始以前序遍历的方式依次访问这棵树中的节点，最开始的节点（&ldquo;Food&rdquo;）第一个被访问，将它左边设为1，然后按照顺序到了第二个阶段"Fruit"，给它的左边写上2，每访问一个节点数字就递增，访问到叶节点后返回，在返回的过程中将访问过的节点右边写也写上数字。这样，在遍历中给每个节点的左边和右边都写上了数字。最后，我们回到了根节点"Food"在右边写上18。下面是标上了数字的树，同时把遍历的顺序用箭头标出来了。</p><p>我们称这些数字为左值和右值（如，&ldquo;Meat"的左值是12，右值是17），这些数字包含了节点之间的关系。因为"Red"有3和6两个值，所以，它是有拥有1-18值的"Food"节点的后续。同样的，可以推断所有左值大于2并且右值小于11的节点，都是有2-11的"Fruit&rdquo; 节点的后续。这样，树的结构就通过左值和右值储存下来了。</p><p>这里就不贴表结构了，这种方式不如前面两种直观。效率上，查询全部下级的需求被很好的解决，而直属下级也可以通过添加父节点id的<code>parent</code>字段来解决。</p><p>因为左值更大右值更小的节点是下级节点，反之左值更小、右值更大的就是上级，故需求3：查询两个分类直接的所有分类可以通过左右值作为条件来解决，同样是一次查询即可。</p><p>添加新分类和删除分类需要修改在前序遍历中所有在指定节点之后的节点，甚至包括非父子节点。而移动分类也是如此，这个特性就非常不友好，在数据量大的情况下，改动一下可是很要命的。</p><p>查询某一级的所有分类，和查询分类是哪一级的，这两个需求无法解决，只能通过<code>parent</code>字段想第一种方式一样慢慢遍历。</p><p>综上所述，对于本项目而言，它还不如第二种，所以这个很复杂的方案也得否决掉。</p><h2 id=新方案的思考>新方案的思考</h2><p>上面几种方案最接近理想的就是第二种，如果能解决字段长度问题和不符合范式，以及需要上层参与处理的问题就好了。不过不要急，先看看第二种方案的的优缺点的本质是什么。</p><p>在分析第二种方案的开头就提到，要确保效率，必须要在分类的信息中包含所有上级分类的信息，而不能仅仅只含有直属上级，所以才有了用一个<code>varchar</code>保存列表的字段。但反过来想想，数据库的表本身不就是用来保存列表这样结构化数据集合的工具吗，为何不能用一张表来代替<code>path</code>字段呢？</p><p><strong>在路径列表的设计中，关键字段<code>path</code>的本质是把一个数组存在了一列里，而这个数组包含两个信息：数组的元素为上层节点的id，数组的下标对应层级。</strong> 所以另增一张表，含有三个字段：一个是本分类的所有上级的id，一个是本分类的id，再加上该分类到每个上级分类的距离。这样这张表就能够起到与<code>path</code>字段相同的作用，而且还不违反数据库范式，最关键的是它不存在字段长度的限制！</p><p>经过一番折腾，终于找到了这个比较完美的方案。事实上在之后的查阅资料中，发现这个方案早就在一些系统中使用了，名叫ClosureTable。</p><h2 id=基于-closuretable-的存储>基于 ClosureTable 的存储</h2><p>ClosureTable以一张表存储节点之间的关系、其中包含了任何两个有关系（上下级）节点的关联信息</p><p><img src=https://s2.loli.net/2024/12/03/gJW7e8ZzOYHPbaU.png loading=lazy alt=ClosureTable演示></p><p>定义关系表<code>CategoryTree</code>，其包含3个字段：</p><ul><li><code>ancestor</code> 祖先：上级节点的id</li><li><code>descendant</code> 子代：下级节点的id</li><li><code>distance</code> 距离：子代到祖先中间隔了几级</li></ul><p>这三个字段的组合是唯一的，因为在树中，一条路径可以标识一个节点，所以可以直接把它们的组合作为主键。以图为例，节点6到它上一级的节点(节点4)距离为1在数据库中存储为<code>ancestor=4,descendant=6,distance=1</code>，到上两级的节点(节点1)距离为2,于是有<code>ancestor=1,descendant=6,distance=2</code>，到根节点的距离为3也是如此，最后还要包含一个到自己的连接，当然距离就是0了。</p><p>这样一来，不仅表中包含了所有的路径信息，还在带上了路径中每个节点的位置（距离），对于树结构常用的查询都能够很方便的处理。下面看看如何用用它来实现我们的需求。</p><h3 id=子节点查询>子节点查询</h3><p>查询id为5的节点的直属子节点：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>descendant</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>CategoryTree</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>ancestor</span><span class=o>=</span><span class=mi>5</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>distance</span><span class=o>=</span><span class=mi>1</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>查询所有子节点：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>descendant</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>CategoryTree</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>ancestor</span><span class=o>=</span><span class=mi>5</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>distance</span><span class=o>&gt;</span><span class=mi>0</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>查询某个上级节点的子节点，换句话说就是查询具有指定上级节点的节点，也就是<code>ancestor</code>字段等于上级节点id即可，第二个距离<code>distance</code>决定了查询的对象是由上级往下那一层的，等于1就是往下一层（直属子节点），大于0就是所有子节点。这两个查询都是一句完成。</p><h3 id=路径查询>路径查询</h3><p>查询由根节点到id为10的节点之间的所有节点，按照层级由小到大排序</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>ancestor</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>CategoryTree</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>descendant</span><span class=o>=</span><span class=mi>10</span><span class=w> </span><span class=k>ORDER</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>distance</span><span class=w> </span><span class=k>DESC</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>查询id为10的节点（含）到id为3的节点（不含）之间的所有节点，按照层级由小到大排序</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>ancestor</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>CategoryTree</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>descendant</span><span class=o>=</span><span class=mi>10</span><span class=w> </span><span class=k>AND</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>distance</span><span class=o>&lt;</span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>distance</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>CategoryTree</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>descendant</span><span class=o>=</span><span class=mi>10</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>ancestor</span><span class=o>=</span><span class=mi>3</span><span class=p>)</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ORDER</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>distance</span><span class=w> </span><span class=k>DESC</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>查询路径，只需要知道<code>descendant</code>即可，因为<code>descendant</code>字段所在的行就是记录这个节点与其上级节点的关系。如果要过滤掉一些则可以限制<code>distance</code>的值。</p><h3 id=查询节点所在的层级深度>查询节点所在的层级（深度）</h3><p>查询id为5的节点是第几级的</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>distance</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>CategoryTree</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>descendant</span><span class=o>=</span><span class=mi>5</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>ancestor</span><span class=o>=</span><span class=mi>0</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>查询id为5的节点是id为10的节点往下第几级</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>distance</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>CategoryTree</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>descendant</span><span class=o>=</span><span class=mi>5</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>ancestor</span><span class=o>=</span><span class=mi>10</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>查询层级（深度）非常简单，因为<code>distance</code>字段就是。直接以上下级的节点id为条件，查询距离即可。</p><h3 id=查询某一层的所有节点>查询某一层的所有节点</h3><p>查询所有第三层的节点</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>descendant</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>CategoryTree</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>ancestor</span><span class=o>=</span><span class=mi>0</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>distance</span><span class=o>=</span><span class=mi>3</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这个就不详细说了，非常简单。</p><h3 id=插入>插入</h3><p>插入和移动就不是那么方便了，当一个节点插入到某个父节点下方时，它将具有与父节点相似的路径，然后再加上一个自身连接即可。
+所以插入操作需要两条语句，第一条复制父节点的所有记录，并把这些记录的<code>distance</code>加一，因为子节点到每个上级节点的距离都比它的父节点多一。当然<code>descendant</code>也要改成自己的。
+例如把id为10的节点插入到id为5的节点下方（这里用了Mysql的方言）</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>CategoryTree</span><span class=p>(</span><span class=n>ancestor</span><span class=p>,</span><span class=n>descendant</span><span class=p>,</span><span class=n>distance</span><span class=p>)</span><span class=w> </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>ancestor</span><span class=p>,</span><span class=mi>10</span><span class=p>,</span><span class=n>distance</span><span class=o>+</span><span class=mi>1</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>CategoryTree</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>descendant</span><span class=o>=</span><span class=mi>5</span><span class=p>)</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>然后就是加入自身连接的记录。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>CategoryTree</span><span class=p>(</span><span class=n>ancestor</span><span class=p>,</span><span class=n>descendant</span><span class=p>,</span><span class=n>distance</span><span class=p>)</span><span class=w> </span><span class=k>VALUES</span><span class=p>(</span><span class=mi>10</span><span class=p>,</span><span class=mi>10</span><span class=p>,</span><span class=mi>0</span><span class=p>)</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=移动>移动</h3><p>节点的移动没有很好的解决方法，因为新位置所在的深度、路径都可能不一样，这就导致移动操作不是仅靠UPDATE语句能完成的，这里选择删除+插入实现移动。
+另外，在有子树的情况下，上级节点的移动还将导致下级节点的路径改变，所以移动上级节点之后还需要修复下级节点的记录，这就需要递归所有下级节点。
+删除id=5节点的所有记录</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>DELETE</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>CategoryTree</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>descendant</span><span class=o>=</span><span class=mi>5</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>然后配合上面一节的插入操作实现移动。具体的实现直接上代码吧。</p><p>ClosureTableCategoryStore.java是主要的逻辑，这里只展示部分代码</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span><span class=lnt>77
+</span><span class=lnt>78
+</span><span class=lnt>79
+</span><span class=lnt>80
+</span><span class=lnt>81
+</span><span class=lnt>82
+</span><span class=lnt>83
+</span><span class=lnt>84
+</span><span class=lnt>85
+</span><span class=lnt>86
+</span><span class=lnt>87
+</span><span class=lnt>88
+</span><span class=lnt>89
+</span><span class=lnt>90
+</span><span class=lnt>91
+</span><span class=lnt>92
+</span><span class=lnt>93
+</span><span class=lnt>94
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=cm>/**
+</span></span></span><span class=line><span class=cl><span class=cm> * 将一个分类移动到目标分类下面（成为其子分类）。被移动分类的子类将自动上浮（成为指定分类
+</span></span></span><span class=line><span class=cl><span class=cm> * 父类的子分类），即使目标是指定分类原本的父类。
+</span></span></span><span class=line><span class=cl><span class=cm> * &lt;p&gt;
+</span></span></span><span class=line><span class=cl><span class=cm> * 例如下图(省略顶级分类)：
+</span></span></span><span class=line><span class=cl><span class=cm> *       1                                     1
+</span></span></span><span class=line><span class=cl><span class=cm> *       |                                   / | \
+</span></span></span><span class=line><span class=cl><span class=cm> *       2                                  3  4  5
+</span></span></span><span class=line><span class=cl><span class=cm> *     / | \             move(2,7)               / \
+</span></span></span><span class=line><span class=cl><span class=cm> *    3  4  5         ---------------&gt;          6   7
+</span></span></span><span class=line><span class=cl><span class=cm> *         / \                                 /  / | \
+</span></span></span><span class=line><span class=cl><span class=cm> *       6    7                               8  9  10 2
+</span></span></span><span class=line><span class=cl><span class=cm> *      /    /  \
+</span></span></span><span class=line><span class=cl><span class=cm> *     8    9    10
+</span></span></span><span class=line><span class=cl><span class=cm> *
+</span></span></span><span class=line><span class=cl><span class=cm> * @param id 被移动分类的id
+</span></span></span><span class=line><span class=cl><span class=cm> * @param target 目标分类的id
+</span></span></span><span class=line><span class=cl><span class=cm> * @throws IllegalArgumentException 如果id或target所表示的分类不存在、或id==target
+</span></span></span><span class=line><span class=cl><span class=cm> */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>move</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>target</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=k>if</span><span class=p>(</span><span class=n>id</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=n>target</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>IllegalArgumentException</span><span class=p>(</span><span class=s>&#34;不能移动到自己下面&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=n>moveSubTree</span><span class=p>(</span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>categoryMapper</span><span class=p>.</span><span class=na>selectAncestor</span><span class=p>(</span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>1</span><span class=p>));</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=n>moveNode</span><span class=p>(</span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>target</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cm>/**
+</span></span></span><span class=line><span class=cl><span class=cm> * 将一个分类移动到目标分类下面（成为其子分类），被移动分类的子分类也会随着移动。
+</span></span></span><span class=line><span class=cl><span class=cm> * 如果目标分类是被移动分类的子类，则先将目标分类（连带子类）移动到被移动分类原来的
+</span></span></span><span class=line><span class=cl><span class=cm> * 的位置，再移动需要被移动的分类。
+</span></span></span><span class=line><span class=cl><span class=cm> * &lt;p&gt;
+</span></span></span><span class=line><span class=cl><span class=cm> * 例如下图(省略顶级分类)：
+</span></span></span><span class=line><span class=cl><span class=cm> *       1                                     1
+</span></span></span><span class=line><span class=cl><span class=cm> *       |                                     |
+</span></span></span><span class=line><span class=cl><span class=cm> *       2                                     7
+</span></span></span><span class=line><span class=cl><span class=cm> *     / | \           moveTree(2,7)         / | \
+</span></span></span><span class=line><span class=cl><span class=cm> *    3  4  5         ---------------&gt;      9  10  2
+</span></span></span><span class=line><span class=cl><span class=cm> *         / \                                   / | \
+</span></span></span><span class=line><span class=cl><span class=cm> *       6    7                                 3  4  5
+</span></span></span><span class=line><span class=cl><span class=cm> *      /    /  \                                     |
+</span></span></span><span class=line><span class=cl><span class=cm> *     8    9    10                                   6
+</span></span></span><span class=line><span class=cl><span class=cm> *                                                    |
+</span></span></span><span class=line><span class=cl><span class=cm> *                                                    8
+</span></span></span><span class=line><span class=cl><span class=cm> *
+</span></span></span><span class=line><span class=cl><span class=cm> * @param id 被移动分类的id
+</span></span></span><span class=line><span class=cl><span class=cm> * @param target 目标分类的id
+</span></span></span><span class=line><span class=cl><span class=cm> * @throws IllegalArgumentException 如果id或target所表示的分类不存在、或id==target
+</span></span></span><span class=line><span class=cl><span class=cm> */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>moveTree</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>target</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=cm>/* 移动分移到自己子树下和无关节点下两种情况 */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=n>Integer</span><span class=w> </span><span class=n>distance</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>categoryMapper</span><span class=p>.</span><span class=na>selectDistance</span><span class=p>(</span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>target</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>distance</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=kc>null</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=c1>// 移动到父节点或其他无关系节点，不需要做额外动作</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>distance</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=n>0</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>IllegalArgumentException</span><span class=p>(</span><span class=s>&#34;不能移动到自己下面&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=p>}</span><span class=w> </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=c1>// 如果移动的目标是其子类，需要先把子类移动到本类的位置</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=kt>int</span><span class=w> </span><span class=n>parent</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>categoryMapper</span><span class=p>.</span><span class=na>selectAncestor</span><span class=p>(</span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>1</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=n>moveNode</span><span class=p>(</span><span class=n>target</span><span class=p>,</span><span class=w> </span><span class=n>parent</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=n>moveSubTree</span><span class=p>(</span><span class=n>target</span><span class=p>,</span><span class=w> </span><span class=n>target</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=n>moveNode</span><span class=p>(</span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>target</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=n>moveSubTree</span><span class=p>(</span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cm>/**
+</span></span></span><span class=line><span class=cl><span class=cm> * 将指定节点移动到另某节点下面，该方法不修改子节点的相关记录，
+</span></span></span><span class=line><span class=cl><span class=cm> * 为了保证数据的完整性，需要与moveSubTree()方法配合使用。
+</span></span></span><span class=line><span class=cl><span class=cm> *
+</span></span></span><span class=line><span class=cl><span class=cm> * @param id 指定节点id
+</span></span></span><span class=line><span class=cl><span class=cm> * @param parent 某节点id
+</span></span></span><span class=line><span class=cl><span class=cm> */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>private</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>moveNode</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>parent</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=n>categoryMapper</span><span class=p>.</span><span class=na>deletePath</span><span class=p>(</span><span class=n>id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=n>categoryMapper</span><span class=p>.</span><span class=na>insertPath</span><span class=p>(</span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>parent</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=n>categoryMapper</span><span class=p>.</span><span class=na>insertNode</span><span class=p>(</span><span class=n>id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cm>/**
+</span></span></span><span class=line><span class=cl><span class=cm> * 将指定节点的所有子树移动到某节点下
+</span></span></span><span class=line><span class=cl><span class=cm> * 如果两个参数相同，则相当于重建子树，用于父节点移动后更新路径
+</span></span></span><span class=line><span class=cl><span class=cm> *
+</span></span></span><span class=line><span class=cl><span class=cm> * @param id     指定节点id
+</span></span></span><span class=line><span class=cl><span class=cm> * @param parent 某节点id
+</span></span></span><span class=line><span class=cl><span class=cm> */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kd>private</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>moveSubTree</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>parent</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=kt>int</span><span class=o>[]</span><span class=w> </span><span class=n>subs</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>categoryMapper</span><span class=p>.</span><span class=na>selectSubId</span><span class=p>(</span><span class=n>id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=k>for</span><span class=w> </span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>sub</span><span class=w> </span><span class=p>:</span><span class=w> </span><span class=n>subs</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=n>moveNode</span><span class=p>(</span><span class=n>sub</span><span class=p>,</span><span class=w> </span><span class=n>parent</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=n>moveSubTree</span><span class=p>(</span><span class=n>sub</span><span class=p>,</span><span class=w> </span><span class=n>sub</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	</span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>其中的categoryMapper 是Mybatis的Mapper，这里只展示部分代码</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=cm>/**
+</span></span></span><span class=line><span class=cl><span class=cm> * 查询某个节点的第N级父节点。如果id指定的节点不存在、操作错误或是数据库被外部修改，
+</span></span></span><span class=line><span class=cl><span class=cm> * 则可能查询不到父节点，此时返回null。
+</span></span></span><span class=line><span class=cl><span class=cm> *
+</span></span></span><span class=line><span class=cl><span class=cm> * @param id 节点id
+</span></span></span><span class=line><span class=cl><span class=cm> * @param n 祖先距离（0表示自己，1表示直属父节点）
+</span></span></span><span class=line><span class=cl><span class=cm> * @return 父节点id，如果不存在则返回null
+</span></span></span><span class=line><span class=cl><span class=cm> */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nd>@Select</span><span class=p>(</span><span class=s>&#34;SELECT ancestor FROM CategoryTree WHERE descendant=#{id} AND distance=#{n}&#34;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>Integer</span><span class=w> </span><span class=nf>selectAncestor</span><span class=p>(</span><span class=nd>@Param</span><span class=p>(</span><span class=s>&#34;id&#34;</span><span class=p>)</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=nd>@Param</span><span class=p>(</span><span class=s>&#34;n&#34;</span><span class=p>)</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>n</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cm>/**
+</span></span></span><span class=line><span class=cl><span class=cm> * 复制父节点的路径结构,并修改descendant和distance
+</span></span></span><span class=line><span class=cl><span class=cm> *
+</span></span></span><span class=line><span class=cl><span class=cm> * @param id 节点id
+</span></span></span><span class=line><span class=cl><span class=cm> * @param parent 父节点id
+</span></span></span><span class=line><span class=cl><span class=cm> */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nd>@Insert</span><span class=p>(</span><span class=s>&#34;INSERT INTO CategoryTree(ancestor,descendant,distance) &#34;</span><span class=w> </span><span class=o>+</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>		</span><span class=s>&#34;(SELECT ancestor,#{id},distance+1 FROM CategoryTree WHERE descendant=#{parent})&#34;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kt>void</span><span class=w> </span><span class=nf>insertPath</span><span class=p>(</span><span class=nd>@Param</span><span class=p>(</span><span class=s>&#34;id&#34;</span><span class=p>)</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=nd>@Param</span><span class=p>(</span><span class=s>&#34;parent&#34;</span><span class=p>)</span><span class=w> </span><span class=kt>int</span><span class=w> </span><span class=n>parent</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cm>/**
+</span></span></span><span class=line><span class=cl><span class=cm> * 在关系表中插入对自身的连接
+</span></span></span><span class=line><span class=cl><span class=cm> *
+</span></span></span><span class=line><span class=cl><span class=cm> * @param id 节点id
+</span></span></span><span class=line><span class=cl><span class=cm> */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nd>@Insert</span><span class=p>(</span><span class=s>&#34;INSERT INTO CategoryTree(ancestor,descendant,distance) VALUES(#{id},#{id},0)&#34;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kt>void</span><span class=w> </span><span class=nf>insertNode</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=cm>/**
+</span></span></span><span class=line><span class=cl><span class=cm> * 从树中删除某节点的路径。注意指定的节点可能存在子树，而子树的节点在该节点之上的路径并没有改变，
+</span></span></span><span class=line><span class=cl><span class=cm> * 所以使用该方法后还必须手动修改子节点的路径以确保树的正确性
+</span></span></span><span class=line><span class=cl><span class=cm> *
+</span></span></span><span class=line><span class=cl><span class=cm> * @param id 节点id
+</span></span></span><span class=line><span class=cl><span class=cm> */</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nd>@Delete</span><span class=p>(</span><span class=s>&#34;DELETE FROM CategoryTree WHERE descendant=#{id}&#34;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=kt>void</span><span class=w> </span><span class=nf>deletePath</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>id</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=结语>结语</h2><p>在分析推论后，终于找到了一种既有查询简单、效率高等优点，也符合数据库设计范式，而且是真正的无限级分类的设计。本方案的写入操作虽然需要递归，但相比于前序遍历树效率仍高出许多，并且在本博客系统中分类不会频繁修改。可见对于在关系数据库中存储一棵树的需求，ClosureTable是一种比较完美的解决方案。</p><p>参考链接
+<a class=link href=https://blog.kaciras.com/article/6/store-tree-in-database target=_blank rel=noopener>https://blog.kaciras.com/article/6/store-tree-in-database</a></p></section><footer class=article-footer><section class=article-tags><a href=/tags/blog/>Blog</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
+<span>Licensed under CC BY-NC-SA 4.0</span></section><section class=article-lastmod><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<span>最后更新于 Dec 02, 2024 13:36 UTC</span></section></footer></article><div class=disqus-container><div id=disqus_thread></div><script>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//hugo-theme-stack.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><style>.disqus-container{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}</style><script>window.addEventListener("onColorSchemeChange",e=>{typeof DISQUS=="object"&&DISQUS.reset({reload:!0})})</script><footer class=site-footer><section class=copyright>&copy;
+2018 -
+2024 Yang Brady's Blog</section><section class=powerby>无限进步<br>使用 <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a> 构建<br>主题 <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.29.0>Stack</a></b> 由 <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a> 设计</section></footer><div class=pswp tabindex=-1 role=dialog aria-hidden=true><div class=pswp__bg></div><div class=pswp__scroll-wrap><div class=pswp__container><div class=pswp__item></div><div class=pswp__item></div><div class=pswp__item></div></div><div class="pswp__ui pswp__ui--hidden"><div class=pswp__top-bar><div class=pswp__counter></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+<button class="pswp__button pswp__button--share" title=Share></button>
+<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button><div class=pswp__preloader><div class=pswp__preloader__icn><div class=pswp__preloader__cut><div class=pswp__preloader__donut></div></div></div></div></div><div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"><div class=pswp__share-tooltip></div></div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+</button>
+<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button><div class=pswp__caption><div class=pswp__caption__center></div></div></div></div></div><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo=" crossorigin=anonymous defer></script><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU=" crossorigin=anonymous defer></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css crossorigin=anonymous><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css crossorigin=anonymous></main></div><script src=https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z+KMkF24hUW8WePSA9HM=" crossorigin=anonymous></script><script type=text/javascript src=/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js defer></script><script>(function(){const e=document.createElement("link");e.href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap",e.type="text/css",e.rel="stylesheet",document.head.appendChild(e)})()</script></body></html>
